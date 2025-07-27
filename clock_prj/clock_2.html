@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Clock</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .clock-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .clock {
+            width: 400px;
+            height: 400px;
+            border: 8px solid #333;
+            border-radius: 50%;
+            position: relative;
+            background: 
+                radial-gradient(circle, rgba(26, 26, 26, 0.5) 0%, rgba(13, 13, 13, 0.5) 100%),
+                url('IMG_1409.JPG');
+            background-size: cover;
+            background-position: center;
+            background-blend-mode: overlay;
+            box-shadow: 
+                inset 0 0 50px rgba(255, 255, 255, 0.05),
+                0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .number {
+            position: absolute;
+            font-size: 24px;
+            font-weight: bold;
+            color: #00ffff;
+            transition: all 0.3s ease;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(0, 255, 255, 0.1);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff;
+            box-shadow: 
+                0 0 10px rgba(0, 255, 255, 0.3),
+                0 0 20px rgba(0, 255, 255, 0.2),
+                inset 0 0 10px rgba(0, 255, 255, 0.1);
+        }
+
+        .hand {
+            position: absolute;
+            background: #333;
+            transform-origin: bottom center;
+            border-radius: 4px;
+            cursor: grab;
+            transition: transform 0.1s ease;
+        }
+
+        .hand:active {
+            cursor: grabbing;
+        }
+
+        .hour-hand {
+            width: 6px;
+            height: 120px;
+            left: 50%;
+            top: 50%;
+            margin-left: -3px;
+            margin-top: -120px;
+            background: linear-gradient(to top, #00ff88, #00ffaa);
+            z-index: 2;
+            transform-origin: 50% 100%;
+            border-radius: 3px;
+            box-shadow: 
+                0 0 10px rgba(0, 255, 136, 0.5),
+                0 0 20px rgba(0, 255, 136, 0.3),
+                0 0 30px rgba(0, 255, 136, 0.2);
+        }
+
+        .minute-hand {
+            width: 4px;
+            height: 160px;
+            left: 50%;
+            top: 50%;
+            margin-left: -2px;
+            margin-top: -160px;
+            background: linear-gradient(to top, #ffffff, #e0e0e0);
+            z-index: 3;
+            transform-origin: 50% 100%;
+            border-radius: 2px;
+            box-shadow: 
+                0 0 8px rgba(255, 255, 255, 0.6),
+                0 0 16px rgba(255, 255, 255, 0.4),
+                0 0 24px rgba(255, 255, 255, 0.2);
+        }
+
+        .center-dot {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, #ffff00 0%, #ffaa00 100%);
+            border-radius: 50%;
+            left: 50%;
+            top: 50%;
+            margin-left: -10px;
+            margin-top: -10px;
+            z-index: 4;
+            box-shadow: 
+                0 0 15px rgba(255, 255, 0, 0.8),
+                0 0 30px rgba(255, 255, 0, 0.4),
+                0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .controls {
+            text-align: center;
+            margin-top: 30px;
+            color: white;
+        }
+
+        .title {
+            font-size: 24px;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            font-weight: bold;
+        }
+
+        .time-display {
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="clock-container">
+        <div class="clock" id="clock">
+            <!-- Numbers will be positioned by JavaScript -->
+            <div class="hand hour-hand" id="hourHand"></div>
+            <div class="hand minute-hand" id="minuteHand"></div>
+            <div class="center-dot"></div>
+        </div>
+        
+        <div class="controls">
+            <div class="title">Live Clock</div>
+            <div class="time-display" id="timeDisplay">12:00:00</div>
+        </div>
+    </div>
+
+    <script>
+        let hourAngle = 0;
+        let minuteAngle = 0;
+        let secondAngle = 0;
+
+        // Create clock numbers
+        function createNumbers() {
+            const clock = document.getElementById('clock');
+            
+            for (let i = 1; i <= 12; i++) {
+                const number = document.createElement('div');
+                number.className = 'number';
+                number.textContent = i;
+                number.id = `number-${i}`;
+                
+                // Calculate position
+                const angle = (i * 30 - 90) * Math.PI / 180; // -90 to start at 12
+                const radius = 160;
+                const x = Math.cos(angle) * radius + 200 - 20; // 200 is center, 20 is half width
+                const y = Math.sin(angle) * radius + 200 - 20; // 200 is center, 20 is half height
+                
+                number.style.left = x + 'px';
+                number.style.top = y + 'px';
+                
+                clock.appendChild(number);
+            }
+        }
+
+        // Update clock with current time
+        function updateClock() {
+            const now = new Date();
+            const hours = now.getHours() % 12;
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+
+            // Calculate angles
+            hourAngle = (hours * 30) + (minutes * 0.5); // 30 degrees per hour + minute adjustment
+            minuteAngle = minutes * 6; // 6 degrees per minute
+            secondAngle = seconds * 6; // 6 degrees per second
+
+            // Update hand positions
+            document.getElementById('hourHand').style.transform = `rotate(${hourAngle}deg)`;
+            document.getElementById('minuteHand').style.transform = `rotate(${minuteAngle}deg)`;
+
+            updateLitNumbers();
+            updateTimeDisplay(now);
+        }
+
+        // Update lit numbers based on hand positions
+        function updateLitNumbers() {
+            // All numbers glow the same - no need to change colors based on hand positions
+            // This function is kept for potential future use but doesn't modify number appearance
+        }
+
+        // Update digital time display
+        function updateTimeDisplay(date) {
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            const seconds = date.getSeconds().toString().padStart(2, '0');
+            
+            document.getElementById('timeDisplay').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+
+        // Initialize
+        createNumbers();
+        updateClock();
+
+        // Update every second
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+</html>
